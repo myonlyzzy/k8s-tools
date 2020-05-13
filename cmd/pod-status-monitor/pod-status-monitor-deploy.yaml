@@ -1,0 +1,30 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: pod-status-monitor
+  name: pod-status-monitor
+  namespace: argo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pod-status-monitor
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: pod-status-monitor
+    spec:
+      containers:
+      - command:
+        - pod-status-monitor
+        - --jobkey testwf
+        - --instanceid 1000
+        image:  registry.intra.weibo.com/weibo_rd_algorithmplatform/pod-monitor:dev-24f6ba7
+        name: pod-status-monitor
+        resources: {}
+      serviceAccount: default
+
+
