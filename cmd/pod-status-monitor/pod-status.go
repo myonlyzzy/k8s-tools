@@ -28,8 +28,10 @@ func main() {
 	if err != nil {
 		log.Fatalf("create k8s client error %v", err)
 	}
+	parseArgs()
 	t := time.NewTicker(DefaultPeriod)
 	defer t.Stop()
+	log.Printf("start monitor pod status (jobkey:%s,instanceid:%s)", jobKey, instanceID)
 	for {
 		select {
 		case <-t.C:
