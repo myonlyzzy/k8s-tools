@@ -66,10 +66,17 @@ func CheckWorkflowPod(cli kubernetes.Interface, labels string) ([]v1.Pod, bool) 
 	pods = pl.Items
 	i := 0
 	for _, p := range pods {
-		if len(p.Status.InitContainerStatuses) == 0 {
+
+		/*if len(p.Status.InitContainerStatuses) == 0 {
+			pods[i] = p
+			i++
+		}*/
+
+		if p.Name == os.Getenv("POD_NAME") {
 			pods[i] = p
 			i++
 		}
+
 	}
 	pods = pods[:i]
 	if len(pods) == 0 {
