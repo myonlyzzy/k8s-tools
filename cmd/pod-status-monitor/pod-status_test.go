@@ -1,9 +1,13 @@
 package main
 
 import (
+	//v1 "k8s.io/api/core/v1"
+	//metav1"k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
+	//"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/clientcmd"
 	"log"
+	//"reflect"
 	"testing"
 	"time"
 )
@@ -25,7 +29,7 @@ func TestPodStatusMonitor(t *testing.T) {
 		select {
 		case <-ticker.C:
 			if pods, ok := CheckWorkflowPod(cli, labels); ok {
-				log.Printf("not labels (%s) pod found",labels)
+				log.Printf("not labels (%s) pod found", labels)
 				return
 			} else {
 				outputPodinfo(pods)
@@ -44,3 +48,46 @@ func K8sClientOutCluster() (*kubernetes.Clientset, error) {
 	}
 	return kubernetes.NewForConfigOrDie(cf), nil
 }
+
+/*func TestCheckWorkflowPod(t *testing.T) {
+	type args struct {
+		cli    *kubernetes.Clientset
+		labels string
+	}
+	_ := fake.NewSimpleClientset(
+		&v1.Pod{
+			TypeMeta:   metav1.TypeMeta{},
+			ObjectMeta: metav1.ObjectMeta{},
+			Status:     v1.PodStatus{},
+		},
+		&v1.Pod{
+
+		},
+	)
+	//fcli.AppsV1()
+	tests := []struct {
+		name  string
+		args  args
+		want  []v1.Pod
+		want1 bool
+	}{
+		{
+
+		},
+		{
+
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, got1 := CheckWorkflowPod(tt.args.cli, tt.args.labels)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("CheckWorkflowPod() got = %v, want %v", got, tt.want)
+			}
+			if got1 != tt.want1 {
+				t.Errorf("CheckWorkflowPod() got1 = %v, want %v", got1, tt.want1)
+			}
+		})
+	}
+}
+*/

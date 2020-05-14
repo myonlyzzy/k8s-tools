@@ -20,8 +20,8 @@ spec:
       containers:
       - command:
         - pod-status-monitor
-        - --jobkey testwf
-        - --instanceid 1000
+        - -jobkey=testwf
+        - -instanceid=1000
         image:  registry.intra.weibo.com/weibo_rd_algorithmplatform/pod-monitor:dev-24f6ba7
         name: pod-status-monitor
         resources: {}

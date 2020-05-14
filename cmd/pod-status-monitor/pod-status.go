@@ -8,6 +8,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"log"
+	"myonlyzzy.io/client-go-test/pkg/utils"
 	"time"
 )
 import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -32,15 +33,17 @@ func main() {
 		log.Fatalf("create k8s client error %v", err)
 	}
 	parseArgs()
-	t := time.NewTicker(DefaultPeriod)
-	defer t.Stop()
+	ticker := time.NewTicker(DefaultPeriod)
+	//jobKey = "testwf"
+	//instanceID = "1000"
 	labels := "jobkey=" + jobKey + "," + "instanceid=" + instanceID
+	defer ticker.Stop()
 	log.Printf("start monitor pod status (%s)", labels)
 	for {
 		select {
-		case <-t.C:
+		case <-ticker.C:
 			if pods, ok := CheckWorkflowPod(cli, labels); ok {
-				log.Printf("not labels (%s) pod found",labels)
+				log.Printf("not labels (%s) pod found", labels)
 				return
 			} else {
 				outputPodinfo(pods)
@@ -54,6 +57,7 @@ func main() {
 
 //check terminating pod
 func CheckWorkflowPod(cli *kubernetes.Clientset, labels string) ([]v1.Pod, bool) {
+	var pods []v1.Pod
 	pl, err := cli.CoreV1().Pods(DefaultNS).List(metav1.ListOptions{
 		LabelSelector: labels,
 	})
@@ -62,10 +66,18 @@ func CheckWorkflowPod(cli *kubernetes.Clientset, labels string) ([]v1.Pod, bool)
 			return nil, true
 		}
 	}
-	if len(pl.Items) == 0 {
+	pods = pl.Items
+	for i := range pods {
+
+		if len(pods[i].Status.InitContainerStatuses) > 0 {
+			pods = utils.RemovePod(pods, i)
+		}
+	}
+	if len(pods) == 0 {
 		return nil, true
 	}
-	return pl.Items, false
+	return pods, false
+
 }
 
 //cleate client go client use serviceaccount default
@@ -80,9 +92,9 @@ func CreateK8sClientInCluster() (*kubernetes.Clientset, error) {
 //parse args
 func parseArgs() {
 	flag.DurationVar(&timeout, "timeout", DefaultPeriod, " check pod status timeout ")
-	flag.StringVar(&jobKey, "jobkey", "", "jobkey")
-	flag.StringVar(&instanceID, "instanceid", "", "instanceid")
-	flag.StringVar(&namespace, "namespace", "", "monitor namespace")
+	flag.StringVar(&jobKey, "jobkey", "testwf", "jobkey")
+	flag.StringVar(&instanceID, "instanceid", "1000", "instanceid")
+	flag.StringVar(&namespace, "namespace", "argo", "monitor namespace")
 	flag.Parse()
 }
 
