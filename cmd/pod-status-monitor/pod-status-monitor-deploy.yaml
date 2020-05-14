@@ -22,6 +22,7 @@ spec:
         - pod-status-monitor
         - -jobkey=testwf
         - -instanceid=1000
+        - -namespace=argo
         image:  registry.intra.weibo.com/weibo_rd_algorithmplatform/pod-monitor:dev-24f6ba7
         name: pod-status-monitor
         resources: {}

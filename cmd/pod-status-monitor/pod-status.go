@@ -8,6 +8,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"log"
+	"os"
 	"time"
 )
 import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -33,8 +34,6 @@ func main() {
 	}
 	parseArgs()
 	ticker := time.NewTicker(DefaultPeriod)
-	//jobKey = "testwf"
-	//instanceID = "1000"
 	labels := "jobkey=" + jobKey + "," + "instanceid=" + instanceID
 	defer ticker.Stop()
 	log.Printf("start monitor pod status (%s)", labels)
@@ -43,21 +42,20 @@ func main() {
 		case <-ticker.C:
 			if pods, ok := CheckWorkflowPod(cli, labels); ok {
 				log.Printf("not labels (%s) pod found", labels)
-				return
+				os.Exit(0)
 			} else {
 				outputPodinfo(pods)
 			}
 		case <-time.After(timeout):
-			return
+			os.Exit(1)
 		}
-
 	}
 }
 
 //check terminating pod
 func CheckWorkflowPod(cli kubernetes.Interface, labels string) ([]v1.Pod, bool) {
 	var pods []v1.Pod
-	pl, err := cli.CoreV1().Pods(DefaultNS).List(metav1.ListOptions{
+	pl, err := cli.CoreV1().Pods(namespace).List(metav1.ListOptions{
 		LabelSelector: labels,
 	})
 	if err != nil {
