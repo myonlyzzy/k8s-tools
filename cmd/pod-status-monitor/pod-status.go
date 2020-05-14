@@ -8,7 +8,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"log"
-	"myonlyzzy.io/client-go-test/pkg/utils"
 	"time"
 )
 import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -56,7 +55,7 @@ func main() {
 }
 
 //check terminating pod
-func CheckWorkflowPod(cli *kubernetes.Clientset, labels string) ([]v1.Pod, bool) {
+func CheckWorkflowPod(cli kubernetes.Interface, labels string) ([]v1.Pod, bool) {
 	var pods []v1.Pod
 	pl, err := cli.CoreV1().Pods(DefaultNS).List(metav1.ListOptions{
 		LabelSelector: labels,
@@ -67,12 +66,14 @@ func CheckWorkflowPod(cli *kubernetes.Clientset, labels string) ([]v1.Pod, bool)
 		}
 	}
 	pods = pl.Items
-	for i := range pods {
-
-		if len(pods[i].Status.InitContainerStatuses) > 0 {
-			pods = utils.RemovePod(pods, i)
+	i := 0
+	for _, p := range pods {
+		if len(p.Status.InitContainerStatuses) == 0 {
+			pods[i] = p
+			i++
 		}
 	}
+	pods = pods[:i]
 	if len(pods) == 0 {
 		return nil, true
 	}
@@ -81,7 +82,7 @@ func CheckWorkflowPod(cli *kubernetes.Clientset, labels string) ([]v1.Pod, bool)
 }
 
 //cleate client go client use serviceaccount default
-func CreateK8sClientInCluster() (*kubernetes.Clientset, error) {
+func CreateK8sClientInCluster() (kubernetes.Interface, error) {
 	conf, err := rest.InClusterConfig()
 	if err != nil {
 		return nil, err
